@@ -1,6 +1,8 @@
 package com.swedbank.playground;
 
-import com.google.common.collect.ImmutableList;
+import com.swedbank.playground.model.Kid;
+import com.swedbank.playground.model.PlaysiteType;
+import com.swedbank.playground.model.Visit;
 
 import java.util.Date;
 import java.util.LinkedList;
@@ -27,12 +29,12 @@ public class Playsite implements IPlaysite {
     }
     else {
       kidsPlaying.add(kid);
-      Visit visit = new Visit();
-      visit.setPlaysite(this);
-      visit.setKid(kid);
-      visit.setStart(true);
-      visit.setTime(new Date());
-      visitRepository.save(visit);
+      visitRepository.save(Visit.builder()
+          .playsite(this)
+          .kid(kid)
+          .time(new Date())
+          .isStart(true)
+          .build());
       return true;
     }
   }
@@ -44,21 +46,21 @@ public class Playsite implements IPlaysite {
     }
 
     if (kidsPlaying.remove(kid)) {
-      Visit visit = new Visit();
-      visit.setPlaysite(this);
-      visit.setKid(kid);
-      visit.setStart(false);
-      visit.setTime(new Date());
-      visitRepository.save(visit);
+      visitRepository.save(Visit.builder()
+          .playsite(this)
+          .kid(kid)
+          .time(new Date())
+          .isStart(false)
+          .build());
 
       if (kidsWaiting.size() > 0) {
         Kid kid2 = kidsWaiting.remove(0);
-        visit = new Visit();
-        visit.setPlaysite(this);
-        visit.setKid(kid2);
-        visit.setStart(true);
-        visit.setTime(new Date());
-        visitRepository.save(visit);
+        visitRepository.save(Visit.builder()
+            .playsite(this)
+            .kid(kid2)
+            .time(new Date())
+            .isStart(true)
+            .build());
         kidsPlaying.add(kid2);
       }
     }
@@ -69,20 +71,12 @@ public class Playsite implements IPlaysite {
 
   @Override
   public List<Kid> kidsPlaying() {
-    ImmutableList.Builder<Kid> builder = ImmutableList.builder();
-    for (int i = 0; i < kidsPlaying.size(); i++) {
-      builder.add(kidsPlaying.get(i));
-    }
-    return builder.build();
+    return List.copyOf(kidsPlaying);
   }
 
   @Override
   public List<Kid> kidsWaiting() {
-    ImmutableList.Builder<Kid> builder = ImmutableList.builder();
-    for (int i = 0; i < kidsWaiting.size(); i++) {
-      builder.add(kidsWaiting.get(i));
-    }
-    return builder.build();
+    return List.copyOf(kidsWaiting);
   }
 
   @Override

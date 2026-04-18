@@ -2,6 +2,9 @@ package com.swedbank.playground;
 
 import java.util.List;
 
+import com.swedbank.playground.model.Kid;
+import com.swedbank.playground.model.PlaysiteType;
+
 public interface IPlaysite {
 
   PlaysiteType getPlaysiteType();

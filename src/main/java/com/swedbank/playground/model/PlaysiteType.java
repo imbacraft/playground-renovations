@@ -1,4 +1,4 @@
-package com.swedbank.playground;
+package com.swedbank.playground.model;
 
 public enum PlaysiteType {
 

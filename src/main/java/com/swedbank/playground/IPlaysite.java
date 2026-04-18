@@ -17,4 +17,6 @@ public interface IPlaysite {
 
   List<Kid> kidsWaiting();
 
+  double utilization();
+
 }

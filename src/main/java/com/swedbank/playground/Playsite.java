@@ -64,6 +64,11 @@ public class Playsite implements IPlaysite {
     return playsiteType;
   }
 
+  @Override
+  public double utilization() {
+    return maxKidsPlaying == 0 ? 0.0 : 100.0 * kidsPlaying.size() / maxKidsPlaying;
+  }
+
   private void saveVisit(Kid kid, boolean isStart) {
     visitRepository.save(Visit.builder()
         .playsite(this)

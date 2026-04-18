@@ -4,22 +4,20 @@ import com.swedbank.playground.model.Kid;
 import com.swedbank.playground.model.PlaysiteType;
 import com.swedbank.playground.model.Visit;
 
+import lombok.RequiredArgsConstructor;
+
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 
+@RequiredArgsConstructor
 public class Playsite implements IPlaysite {
 
-  private PlaysiteType playsiteType;
-
-  private List<Kid> kidsPlaying = new LinkedList<>();
-  private List<Kid> kidsWaiting = new LinkedList<>();
-  private int maxKidsPlaying;
-  private IVisitRepository visitRepository;
-
-  public Playsite(IVisitRepository visitRepository) {
-    this.visitRepository = visitRepository;
-  }
+  private final PlaysiteType playsiteType;
+  private final int maxKidsPlaying;
+  private final IVisitRepository visitRepository;
+  private final List<Kid> kidsPlaying = new ArrayList<>();
+  private final List<Kid> kidsWaiting = new ArrayList<>();
 
   @Override
   public boolean addKid(Kid kid) {
@@ -27,16 +25,9 @@ public class Playsite implements IPlaysite {
       kidsWaiting.add(kid);
       return false;
     }
-    else {
-      kidsPlaying.add(kid);
-      visitRepository.save(Visit.builder()
-          .playsite(this)
-          .kid(kid)
-          .time(new Date())
-          .isStart(true)
-          .build());
-      return true;
-    }
+    kidsPlaying.add(kid);
+    saveVisit(kid, true);
+    return true;
   }
 
   @Override
@@ -45,27 +36,16 @@ public class Playsite implements IPlaysite {
       return;
     }
 
-    if (kidsPlaying.remove(kid)) {
-      visitRepository.save(Visit.builder()
-          .playsite(this)
-          .kid(kid)
-          .time(new Date())
-          .isStart(false)
-          .build());
-
-      if (kidsWaiting.size() > 0) {
-        Kid kid2 = kidsWaiting.remove(0);
-        visitRepository.save(Visit.builder()
-            .playsite(this)
-            .kid(kid2)
-            .time(new Date())
-            .isStart(true)
-            .build());
-        kidsPlaying.add(kid2);
-      }
+    if (!kidsPlaying.remove(kid)) {
+      throw new IllegalArgumentException("No kid " + kid + " in playsite: " + this);
     }
-    else {
-      throw new RuntimeException("No kid " + kid + " in playsite: " + this);
+
+    saveVisit(kid, false);
+
+    if (!kidsWaiting.isEmpty()) {
+      Kid next = kidsWaiting.remove(0);
+      kidsPlaying.add(next);
+      saveVisit(next, true);
     }
   }
 
@@ -84,15 +64,12 @@ public class Playsite implements IPlaysite {
     return playsiteType;
   }
 
-  public void setPlaysiteType(PlaysiteType playsiteType) {
-    this.playsiteType = playsiteType;
-  }
-
-  public int getMaxKidsPlaying() {
-    return maxKidsPlaying;
-  }
-
-  public void setMaxKidsPlaying(int maxKidsPlaying) {
-    this.maxKidsPlaying = maxKidsPlaying;
+  private void saveVisit(Kid kid, boolean isStart) {
+    visitRepository.save(Visit.builder()
+        .playsite(this)
+        .kid(kid)
+        .time(new Date())
+        .isStart(isStart)
+        .build());
   }
 }

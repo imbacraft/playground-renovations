@@ -23,7 +23,7 @@ public class Playsite implements IPlaysite {
   private final Set<Kid> vipSkipped = new HashSet<>();
 
   @Override
-  public boolean addKid(Kid kid) {
+  public synchronized boolean addKid(Kid kid) {
     if (kidsPlaying.size() >= maxKidsPlaying) {
       queueKid(kid);
       return false;
@@ -34,7 +34,7 @@ public class Playsite implements IPlaysite {
   }
 
   @Override
-  public void removeKid(Kid kid) {
+  public synchronized void removeKid(Kid kid) {
     if (kidsWaiting.remove(kid)) {
       vipSkipped.remove(kid);
       return;
@@ -86,12 +86,12 @@ public class Playsite implements IPlaysite {
   }
 
   @Override
-  public List<Kid> kidsPlaying() {
+  public synchronized List<Kid> kidsPlaying() {
     return List.copyOf(kidsPlaying);
   }
 
   @Override
-  public List<Kid> kidsWaiting() {
+  public synchronized List<Kid> kidsWaiting() {
     return List.copyOf(kidsWaiting);
   }
 
@@ -101,7 +101,7 @@ public class Playsite implements IPlaysite {
   }
 
   @Override
-  public double utilization() {
+  public synchronized double utilization() {
     return maxKidsPlaying == 0 ? 0.0 : 100.0 * kidsPlaying.size() / maxKidsPlaying;
   }
 

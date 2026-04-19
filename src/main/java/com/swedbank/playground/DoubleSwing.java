@@ -9,7 +9,7 @@ public class DoubleSwing extends Playsite {
   }
 
   @Override
-  public double utilization() {
+  public synchronized double utilization() {
     return kidsPlaying().size() < 2 ? 0.0 : 100.0;
   }
 }

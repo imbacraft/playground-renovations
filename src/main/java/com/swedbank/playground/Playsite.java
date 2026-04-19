@@ -25,11 +25,7 @@ public class Playsite implements IPlaysite {
   @Override
   public boolean addKid(Kid kid) {
     if (kidsPlaying.size() >= maxKidsPlaying) {
-      if (kid.vip()) {
-        insertVip(kid);
-      } else {
-        kidsWaiting.add(kid);
-      }
+      queueKid(kid);
       return false;
     }
     kidsPlaying.add(kid);
@@ -58,27 +54,33 @@ public class Playsite implements IPlaysite {
     }
   }
 
-  // front-most 3 non-VIPs can each be skipped at most once.
   // Example: KKKKK + VV -> VKKKVKK
   private void insertVip(Kid vip) {
     int pos = 0;
+    // VIPs can't pass other VIPs; start after the last one
     for (int i = 0; i < kidsWaiting.size(); i++) {
       if (kidsWaiting.get(i).vip()) {
         pos = i + 1;
       }
     }
+    // front-3 non-VIPs already skipped are blockers
     int nonVipCount = 0;
     for (int i = 0; i < kidsWaiting.size(); i++) {
       Kid k = kidsWaiting.get(i);
-      if (k.vip()) continue;
+      if (k.vip()) {
+        continue;
+      }
+
       if (nonVipCount < 3 && vipSkipped.contains(k)) {
         pos = Math.max(pos, i + 1);
       }
       nonVipCount++;
     }
+    // mark everyone the VIP just passed as skipped
     for (int i = pos; i < kidsWaiting.size(); i++) {
       Kid k = kidsWaiting.get(i);
-      if (!k.vip()) vipSkipped.add(k);
+      if (!k.vip())
+        vipSkipped.add(k);
     }
     kidsWaiting.add(pos, vip);
   }
@@ -110,5 +112,13 @@ public class Playsite implements IPlaysite {
         .time(new Date())
         .isStart(isStart)
         .build());
+  }
+
+  private void queueKid(Kid kid) {
+    if (kid.vip()) {
+      insertVip(kid);
+    } else {
+      kidsWaiting.add(kid);
+    }
   }
 }
